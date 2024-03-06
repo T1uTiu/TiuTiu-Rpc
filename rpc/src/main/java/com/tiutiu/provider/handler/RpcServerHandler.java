@@ -2,11 +2,12 @@ package com.tiutiu.provider.handler;
 
 import com.tiutiu.common.RpcRequest;
 import com.tiutiu.common.RpcResponse;
+import com.tiutiu.common.RpcServiceNameBuilder;
 import com.tiutiu.protocol.MsgHeader;
 import com.tiutiu.protocol.RpcProtocol;
+import com.tiutiu.provider.RpcServiceHolder;
 import com.tiutiu.registry.RegistryFactory;
 import com.tiutiu.registry.RegistryService;
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
@@ -26,23 +27,21 @@ public class RpcServerHandler extends SimpleChannelInboundHandler {
     }
     private RpcProtocol<RpcResponse> handleRequest(RpcProtocol<RpcRequest> msg){
         RpcRequest request = msg.getBody();
-        // 注册中心
-        RegistryService registryService = RegistryFactory.get();
         // 获取服务实现类
-        String className = request.getClassName();
+        String serviceName = request.getServiceName();
+        String serviceVersion = request.getServiceVersion();
+        Class<?> serviceClass = RpcServiceHolder.serviceMap.get(
+                RpcServiceNameBuilder.buildKey(serviceName, serviceVersion));
         String methodName = request.getMethodName();
-        Class<?> service = registryService.discoveries(className);
-        Object serviceBean = null;
+
+        Object service = null;
         Method method = null;
         // 反射构造实现类
         try {
-            serviceBean = service.newInstance();
-            // 反射调用方法
-            method = service.getMethod(methodName, request.getParameterTypes());
-        } catch (InstantiationException | IllegalAccessException e) {
+            service = serviceClass.getDeclaredConstructor().newInstance();
+            method = serviceClass.getMethod(methodName, request.getParameterTypes());
+        } catch (Exception e) {
             e.printStackTrace();
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException(e);
         }
         RpcProtocol<RpcResponse> response = new RpcProtocol<>();
         // 响应头
@@ -56,7 +55,7 @@ public class RpcServerHandler extends SimpleChannelInboundHandler {
         // 响应体
         RpcResponse rpcResponse = RpcResponse.builder().build();
         try{
-            Object res = method.invoke(serviceBean, request.getParameters());
+            Object res = method.invoke(service, request.getParameters());
             rpcResponse.setData(res);
             rpcResponse.setDataClass(res.getClass());
             rpcResponse.setMessage("方法调用成功");

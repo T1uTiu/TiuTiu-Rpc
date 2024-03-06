@@ -2,14 +2,20 @@ package com.tiutiu.consumer;
 
 import com.tiutiu.common.RpcRequest;
 import com.tiutiu.common.RpcResponse;
+import com.tiutiu.common.RpcServiceNameBuilder;
+import com.tiutiu.common.ServiceMeta;
 import com.tiutiu.protocol.MsgHeader;
 import com.tiutiu.protocol.RpcProtocol;
+import com.tiutiu.provider.RpcServiceHolder;
+import com.tiutiu.registry.RegistryFactory;
+import com.tiutiu.registry.RegistryService;
 import io.netty.channel.DefaultEventLoop;
 import io.netty.util.concurrent.DefaultPromise;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
@@ -31,15 +37,20 @@ public class RpcInvokerProxy implements InvocationHandler {
         // 构建请求体
         RpcRequest rpcRequest = RpcRequest.builder()
                 .serviceVersion("1.0")
-                .className(method.getDeclaringClass().getName())
+                .serviceName(method.getDeclaringClass().getName())
                 .methodName(method.getName())
                 .parameterTypes(method.getParameterTypes())
                 .parameters(args)
                 .build();
         request.setBody(rpcRequest);
         RpcClient rpcClient = new RpcClient();
+        // 注册中心
+        RegistryService registryService = RegistryFactory.get();
+        List<ServiceMeta> serviceMetas = registryService.discoveries(
+                RpcServiceNameBuilder.buildKey(rpcRequest.getServiceName(), rpcRequest.getServiceVersion())
+        );
         // 发送消息
-        rpcClient.sendRequest(request);
+        rpcClient.sendRequest(serviceMetas.get(0), request);
         // 等待响应
         RpcFuture<RpcResponse> future = new RpcFuture<>(new DefaultPromise<>(new DefaultEventLoop()), 3000);
         RpcRequestHolder.REQUEST_MAP.put(requestId, future);

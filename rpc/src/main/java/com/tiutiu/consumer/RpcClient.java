@@ -1,6 +1,7 @@
 package com.tiutiu.consumer;
 
 import com.tiutiu.common.RpcRequest;
+import com.tiutiu.common.ServiceMeta;
 import com.tiutiu.consumer.handler.RpcClientHandler;
 import com.tiutiu.protocol.RpcProtocol;
 import com.tiutiu.protocol.codec.RpcDecoder;
@@ -39,8 +40,8 @@ public class RpcClient{
                     }
                 });
     }
-    public void sendRequest(RpcProtocol<RpcRequest> protocol) throws Exception{
-        ChannelFuture future = bootstrap.connect("localhost", 8088).sync();
+    public void sendRequest(ServiceMeta serviceMeta, RpcProtocol<RpcRequest> protocol) throws Exception{
+        ChannelFuture future = bootstrap.connect(serviceMeta.getServiceAddress(), serviceMeta.getServicePort()).sync();
         future.addListener((ChannelFutureListener) channelFuture -> {
             if (future.isSuccess()) {
                 logger.info("客户端连接成功");

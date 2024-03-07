@@ -9,8 +9,12 @@ import com.tiutiu.protocol.RpcProtocol;
 import com.tiutiu.provider.RpcServiceHolder;
 import com.tiutiu.registry.RegistryFactory;
 import com.tiutiu.registry.RegistryService;
+import com.tiutiu.router.LoadBalancer;
+import com.tiutiu.router.LoadBalancerFactory;
+import com.tiutiu.router.ServiceMetaRes;
 import io.netty.channel.DefaultEventLoop;
 import io.netty.util.concurrent.DefaultPromise;
+import lombok.val;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -44,13 +48,12 @@ public class RpcInvokerProxy implements InvocationHandler {
                 .build();
         request.setBody(rpcRequest);
         RpcClient rpcClient = new RpcClient();
-        // 注册中心
-        RegistryService registryService = RegistryFactory.get();
-        List<ServiceMeta> serviceMetas = registryService.discoveries(
-                RpcServiceNameBuilder.buildKey(rpcRequest.getServiceName(), rpcRequest.getServiceVersion())
-        );
+        // 获得负载均衡策略
+        LoadBalancer loadBalancer = LoadBalancerFactory.get();
+        String serviceNameKey = RpcServiceNameBuilder.buildKey(rpcRequest.getServiceName(), rpcRequest.getServiceVersion());
+        ServiceMetaRes serviceMetaRes = loadBalancer.select(serviceNameKey);
         // 发送消息
-        rpcClient.sendRequest(serviceMetas.get(0), request);
+        rpcClient.sendRequest(serviceMetaRes.getCurServiceMeta(), request);
         // 等待响应
         RpcFuture<RpcResponse> future = new RpcFuture<>(new DefaultPromise<>(new DefaultEventLoop()), 3000);
         RpcRequestHolder.REQUEST_MAP.put(requestId, future);

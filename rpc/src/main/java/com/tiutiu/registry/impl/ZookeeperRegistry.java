@@ -15,6 +15,7 @@ import org.apache.curator.x.discovery.details.JsonInstanceSerializer;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ZookeeperRegistry implements RegistryService {
     private static volatile ZookeeperRegistry zookeeperRegistry;
@@ -72,7 +73,7 @@ public class ZookeeperRegistry implements RegistryService {
         try{
             Collection<ServiceInstance<ServiceMeta>> serviceInstances = serviceDiscovery.queryForInstances(serviceName);
             return serviceInstances.stream()
-                    .map(ServiceInstance::getPayload).toList();
+                    .map(ServiceInstance::getPayload).collect(Collectors.toList());
         } catch (Exception e) {
             e.printStackTrace();
         }

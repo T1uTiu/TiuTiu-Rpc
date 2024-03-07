@@ -24,7 +24,7 @@ public class RoundRobinLoadBalancer implements LoadBalancer {
     }
     private final AtomicInteger roundRobin = new AtomicInteger(0);
     @Override
-    public ServiceMetaRes select(String serviceName) throws Exception {
+    public ServiceMetaRes select(String serviceName, Object[] params) throws Exception {
         // 获得注册中心
         RegistryService registryService = RegistryFactory.get();
         List<ServiceMeta> serviceMetas = registryService.discoveries(serviceName);

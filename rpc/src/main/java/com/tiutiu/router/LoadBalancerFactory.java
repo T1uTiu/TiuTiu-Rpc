@@ -1,9 +1,9 @@
 package com.tiutiu.router;
 
-import com.tiutiu.router.impl.RoundRobinLoadBalancer;
+import com.tiutiu.router.impl.*;
 
 public class LoadBalancerFactory {
     public static LoadBalancer get() {
-        return RoundRobinLoadBalancer.getInstance();
+        return ConsistentHashLoadBalancer.getInstance();
     }
 }

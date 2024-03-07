@@ -7,6 +7,8 @@ public class Consumer {
     public static void main(String[] args) {
         TestService testService = (TestService) RpcInvokerProxy.getInstance(TestService.class);
         Integer ans = testService.add(1,2);
+        Integer ans2 = testService.add(1,2);
         System.out.println(ans);
+        System.out.println(ans2);
     }
 }

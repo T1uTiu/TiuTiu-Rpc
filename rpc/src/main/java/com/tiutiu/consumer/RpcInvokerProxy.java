@@ -51,7 +51,8 @@ public class RpcInvokerProxy implements InvocationHandler {
         // 获得负载均衡策略
         LoadBalancer loadBalancer = LoadBalancerFactory.get();
         String serviceNameKey = RpcServiceNameBuilder.buildKey(rpcRequest.getServiceName(), rpcRequest.getServiceVersion());
-        ServiceMetaRes serviceMetaRes = loadBalancer.select(serviceNameKey);
+        Object[] params = {request.getBody()};
+        ServiceMetaRes serviceMetaRes = loadBalancer.select(serviceNameKey, params);
         // 发送消息
         rpcClient.sendRequest(serviceMetaRes.getCurServiceMeta(), request);
         // 等待响应

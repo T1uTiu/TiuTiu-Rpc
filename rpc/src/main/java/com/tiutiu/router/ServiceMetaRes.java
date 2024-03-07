@@ -12,16 +12,16 @@ import java.util.List;
 @Getter
 public class ServiceMetaRes {
     ServiceMeta curServiceMeta;
-    List<ServiceMeta> otherServiceMetas;
-    public ServiceMetaRes(ServiceMeta curServiceMeta, List<ServiceMeta> otherServiceMetas){
+    Collection<ServiceMeta> otherServiceMetas;
+    public ServiceMetaRes(ServiceMeta curServiceMeta, Collection<ServiceMeta> otherServiceMetas){
         this.curServiceMeta = curServiceMeta;
         // 如果只有一个服务
         if(otherServiceMetas.size() == 1){
-            this.otherServiceMetas = new ArrayList<>();
+            otherServiceMetas = new ArrayList<>();
         }else{
-            this.otherServiceMetas = new ArrayList<>(otherServiceMetas);
-            this.otherServiceMetas.remove(curServiceMeta);
+            otherServiceMetas.remove(curServiceMeta);
         }
+        this.otherServiceMetas = otherServiceMetas;
 
     }
 }

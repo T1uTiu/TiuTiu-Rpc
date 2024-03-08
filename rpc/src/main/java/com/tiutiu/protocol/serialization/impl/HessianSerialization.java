@@ -9,6 +9,18 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 public class HessianSerialization implements RpcSerialization {
+    // 懒汉单例模式
+    private volatile static HessianSerialization instance;
+    public static HessianSerialization getInstance(){
+        if(instance == null){
+            synchronized (HessianSerialization.class){
+                if(instance == null){
+                    instance = new HessianSerialization();
+                }
+            }
+        }
+        return instance;
+    }
     @Override
     public <T> byte[] serialize(T obj) throws IOException{
         if(obj == null){

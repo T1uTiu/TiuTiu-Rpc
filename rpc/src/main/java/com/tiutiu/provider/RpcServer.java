@@ -32,7 +32,7 @@ public class RpcServer extends Thread{
                                     .addLast(new RpcServerHandler());
                         }
                     })
-                    // 这个参数影响的是还没有被accept 取出的连接，全连接队列的大小=min(backlog, somaxconn)
+                    // 全连接队列，全连接队列的大小=min(backlog, somaxconn)
                     .option(ChannelOption.SO_BACKLOG, 128)
                     // 这个参数只是过一段时间内客户端没有响应，服务端会发送一个 ack 包，以判断客户端是否还活着。
                     .childOption(ChannelOption.SO_KEEPALIVE, true);

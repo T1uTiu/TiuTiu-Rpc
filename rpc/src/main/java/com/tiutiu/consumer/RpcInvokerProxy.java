@@ -24,7 +24,14 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 public class RpcInvokerProxy implements InvocationHandler {
+    private final String serviceVersion;
+    private final long timeout;
     Logger logger = Logger.getLogger(RpcInvokerProxy.class.getName());
+    RpcInvokerProxy(String serviceVersion, long timeout){
+        this.serviceVersion = serviceVersion;
+        this.timeout = timeout;
+
+    }
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         RpcProtocol<RpcRequest> request = new RpcProtocol<>();
@@ -40,7 +47,7 @@ public class RpcInvokerProxy implements InvocationHandler {
         request.setMsgHeader(msgHeader);
         // 构建请求体
         RpcRequest rpcRequest = RpcRequest.builder()
-                .serviceVersion("1.0")
+                .serviceVersion(serviceVersion)
                 .serviceName(method.getDeclaringClass().getName())
                 .methodName(method.getName())
                 .parameterTypes(method.getParameterTypes())
@@ -56,17 +63,17 @@ public class RpcInvokerProxy implements InvocationHandler {
         // 发送消息
         rpcClient.sendRequest(serviceMetaRes.getCurServiceMeta(), request);
         // 等待响应
-        RpcFuture<RpcResponse> future = new RpcFuture<>(new DefaultPromise<>(new DefaultEventLoop()), 3000);
+        RpcFuture<RpcResponse> future = new RpcFuture<>(new DefaultPromise<>(new DefaultEventLoop()), timeout);
         RpcRequestHolder.REQUEST_MAP.put(requestId, future);
         RpcResponse response = future.getPromise().get(future.getTimeout(), TimeUnit.MILLISECONDS);
         logger.info("rpc调用成功");
         return response.getData();
     }
-    public static Object getInstance(Class<?> clazz){
+    public static Object getInstance(Class<?> clazz, String serviceVersion, long timeout){
         return Proxy.newProxyInstance(
                 clazz.getClassLoader(),
                 new Class<?>[]{clazz},
-                new RpcInvokerProxy()
+                new RpcInvokerProxy(serviceVersion, timeout)
         );
     }
 }

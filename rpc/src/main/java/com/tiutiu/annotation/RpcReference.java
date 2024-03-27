@@ -12,4 +12,5 @@ import java.lang.annotation.Target;
 public @interface RpcReference {
     String version() default "1.0";
     long timeout() default 5000;
+    int retryCount() default 5;
 }

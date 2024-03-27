@@ -16,7 +16,7 @@ public class RpcReferencePostProcessor implements BeanPostProcessor {
                 RpcReference rpcReference = field.getAnnotation(RpcReference.class);
                 Class<?> type = field.getType();
                 field.setAccessible(true);
-                Object proxy = RpcInvokerProxy.getInstance(type, rpcReference.version(), rpcReference.timeout());
+                Object proxy = RpcInvokerProxy.getInstance(type, rpcReference.version(), rpcReference.timeout(), rpcReference.retryCount());
                 // 将代理对象设置给字段
                 try{
                     field.set(bean, proxy);

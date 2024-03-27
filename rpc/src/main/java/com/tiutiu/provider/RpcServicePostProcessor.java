@@ -8,6 +8,8 @@ import com.tiutiu.registry.RegistryService;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.context.EnvironmentAware;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 
@@ -46,5 +48,6 @@ public class RpcServicePostProcessor implements BeanPostProcessor {
         }
         return bean;
     }
+
 
 }

@@ -7,7 +7,6 @@ import java.net.URL;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class ExtensionLoader {
     // 单例模式
@@ -23,40 +22,21 @@ public class ExtensionLoader {
         return instance;
     }
     public static String[] EXTENSION_DIRECTORY = {
-            "META-INF/tiutiu-sys-rpc",
+            "META-INF/sys-trpc",
             "META-INF/tiutiu-rpc"
     };
-    public Map<String, Map<String, Class<?>>> extensionMap = new ConcurrentHashMap<>();
     /**
      * 通过SPI机制根据接口加载实现类
-     * @param clazz
+     * @param clazz 接口类型
      */
-    public Class<?> get(Class<?> clazz, String name){
-        if(clazz == null){
-            throw new IllegalArgumentException("Extension type is null");
-        }
-        if(name == null){
-            throw new IllegalArgumentException("Extension name is null");
-        }
-        Map<String, Class<?>> classMap = extensionMap.get(clazz.getName());
-        if(classMap == null){
-            throw new IllegalArgumentException("Extension type is not found");
-        }
-        Class<?> clz = classMap.get(name);
-        if(clz == null){
-            throw new IllegalArgumentException("Extension name is not found");
-        }
-        return clz;
-
-    }
-    public void loadExtension(Class<?> clazz) throws IOException, ClassNotFoundException {
+    public Map<String, Class<?>> loadExtension(Class<?> clazz) throws IOException, ClassNotFoundException {
         if(clazz == null){
             throw new IllegalArgumentException("Extension type is null");
         }
         ClassLoader classLoader = getClass().getClassLoader();
         Map<String, Class<?>> classMap = new HashMap<>();
         for(String path: EXTENSION_DIRECTORY){
-            String fileName = path + clazz.getName();
+            String fileName = path + "/"+clazz.getName();
             Enumeration<URL> urls = classLoader.getResources(fileName);
             while (urls.hasMoreElements()){
                 URL url = urls.nextElement();
@@ -74,6 +54,6 @@ public class ExtensionLoader {
 
             }
         }
-        extensionMap.put(clazz.getName(), classMap);
+        return classMap;
     }
 }

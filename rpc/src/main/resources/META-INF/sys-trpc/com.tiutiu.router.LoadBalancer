@@ -1,0 +1,2 @@
+roundRobin=com.tiutiu.router.impl.RoundRobinLoadBalancer
+consistentHash=com.tiutiu.router.impl.ConsistentHashLoadBalancer

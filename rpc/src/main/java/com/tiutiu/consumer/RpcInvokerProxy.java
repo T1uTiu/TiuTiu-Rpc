@@ -28,11 +28,13 @@ public class RpcInvokerProxy implements InvocationHandler {
     private final String serviceVersion;
     private final long timeout;
     private final int retryCount;
+    private final String loadBalanceRule;
     Logger logger = Logger.getLogger(RpcInvokerProxy.class.getName());
-    RpcInvokerProxy(String serviceVersion, long timeout, int retryCount){
+    RpcInvokerProxy(String serviceVersion, long timeout, int retryCount, String loadBalanceRule){
         this.serviceVersion = serviceVersion;
         this.timeout = timeout;
         this.retryCount = retryCount;
+        this.loadBalanceRule = loadBalanceRule;
     }
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
@@ -58,7 +60,7 @@ public class RpcInvokerProxy implements InvocationHandler {
         request.setBody(rpcRequest);
         RpcClient rpcClient = new RpcClient();
         // 获得负载均衡策略
-        LoadBalancer loadBalancer = LoadBalancerFactory.get();
+        LoadBalancer loadBalancer = LoadBalancerFactory.get(loadBalanceRule);
         String serviceNameKey = RpcServiceNameBuilder.buildKey(rpcRequest.getServiceName(), rpcRequest.getServiceVersion());
         Object[] params = {request.getBody()};
         ServiceMetaRes serviceMetaRes = loadBalancer.select(serviceNameKey, params);
@@ -91,11 +93,11 @@ public class RpcInvokerProxy implements InvocationHandler {
 
         throw new RuntimeException("rpc调用失败，达到最大调用次数："+retryCount);
     }
-    public static Object getInstance(Class<?> clazz, String serviceVersion, long timeout, int retryCount){
+    public static Object getInstance(Class<?> clazz, String serviceVersion, long timeout, int retryCount, String loadBalanceRule){
         return Proxy.newProxyInstance(
                 clazz.getClassLoader(),
                 new Class<?>[]{clazz},
-                new RpcInvokerProxy(serviceVersion, timeout, retryCount)
+                new RpcInvokerProxy(serviceVersion, timeout, retryCount, loadBalanceRule)
         );
     }
 }
